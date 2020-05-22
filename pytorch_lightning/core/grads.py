@@ -19,12 +19,12 @@ class GradInformation(nn.Module):
                     norm = param_norm ** (1 / norm_type)
 
                     grad = round(norm.data.cpu().numpy().flatten()[0], 3)
-                    results['grad_{}_norm_{}'.format(norm_type, name)] = grad
+                    results['grad_{}_norm/{}'.format(norm_type, name)] = grad
                 except Exception:
                     # this param had no grad
                     pass
 
         total_norm = total_norm ** (1. / norm_type)
         grad = round(total_norm.data.cpu().numpy().flatten()[0], 3)
-        results['grad_{}_norm_total'.format(norm_type)] = grad
+        results = {'grad_{}_norm/total'.format(norm_type): grad}
         return results
