@@ -26,5 +26,5 @@ class GradInformation(nn.Module):
 
         total_norm = total_norm ** (1. / norm_type)
         grad = round(total_norm.data.cpu().numpy().flatten()[0], 3)
-        results['grad_{}_norm_total'.format(norm_type)] = grad
+        results = {f'grad_{norm_type}_norm_total': grad}
         return results
