@@ -201,7 +201,7 @@ class TrainerIOMixin(ABC):
             job_name = os.environ['SLURM_JOB_NAME']
             if job_name != 'bash':
                 on_slurm = True
-        except Exception as e:
+        except Exception:
             pass
 
         if on_slurm:
@@ -263,11 +263,11 @@ class TrainerIOMixin(ABC):
             # do the actual save
             try:
                 self._atomic_save(checkpoint, filepath)
-            except AttributeError as e:
+            except AttributeError as err:
                 if 'hparams' in checkpoint:
                     del checkpoint['hparams']
                 rank_zero_warn('warning, `hparams` dropped from checkpoint.'
-                               f' An attribute is not picklable {e}')
+                               f' An attribute is not picklable {err}')
 
                 self._atomic_save(checkpoint, filepath)
 
@@ -463,11 +463,11 @@ class TrainerIOMixin(ABC):
         # TODO: fix for anything with multiprocess DP, DDP, DDP2
         try:
             self._atomic_save(checkpoint, filepath)
-        except AttributeError as e:
+        except AttributeError as err:
             if 'hparams' in checkpoint:
                 del checkpoint['hparams']
-            rank_zero_warn('warning, `hparams` dropped from checkpoint.'
-                           f' An attribute is not picklable {e}')
+            rank_zero_warn('Warning, `hparams` dropped from checkpoint.'
+                           f' An attribute is not picklable {err}')
 
             self._atomic_save(checkpoint, filepath)
 
