@@ -1444,6 +1444,7 @@ class LightningModule(ABC, DeviceDtypeModuleMixin, GradInformation, ModelIO, Mod
             hparams_file: Optional[str] = None,
             tags_csv: Optional[str] = None,  # backward compatible, todo: remove in v0.9.0
             hparam_overrides: Optional[Dict] = None,
+            strict: bool = True,
             **kwargs
     ) -> 'LightningModule':
         r"""
@@ -1595,11 +1596,11 @@ class LightningModule(ABC, DeviceDtypeModuleMixin, GradInformation, ModelIO, Mod
         if hparam_overrides is not None:
             update_hparams(hparams, hparam_overrides)
 
-        model = cls._load_model_state(checkpoint, *args, **kwargs)
+        model = cls._load_model_state(checkpoint, strict=strict, *args, **kwargs)
         return model
 
     @classmethod
-    def _load_model_state(cls, checkpoint: Dict[str, Any], *args, **kwargs) -> 'LightningModule':
+    def _load_model_state(cls, checkpoint: Dict[str, Any], strict: bool = True, *args, **kwargs) -> 'LightningModule':
         cls_takes_hparams = 'hparams' in inspect.signature(cls.__init__).parameters
         ckpt_hparams = checkpoint.get('hparams')
 
@@ -1630,7 +1631,7 @@ class LightningModule(ABC, DeviceDtypeModuleMixin, GradInformation, ModelIO, Mod
         if cls_takes_hparams:
             kwargs.update(hparams=hparams)
         model = cls(*args, **kwargs)
-        model.load_state_dict(checkpoint['state_dict'])
+        model.load_state_dict(checkpoint['state_dict'], strict=strict)
 
         # give model a chance to load something
         model.on_load_checkpoint(checkpoint)
