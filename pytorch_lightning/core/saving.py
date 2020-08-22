@@ -17,7 +17,7 @@ import csv
 import inspect
 import os
 from argparse import Namespace
-from typing import Union, Dict, Any, Optional, Callable, MutableMapping
+from typing import Any, Callable, Dict, MutableMapping, Optional, Union
 
 import torch
 import yaml
@@ -148,7 +148,7 @@ class ModelIO(object):
         if cls.CHECKPOINT_HYPER_PARAMS_KEY not in checkpoint:
             checkpoint[cls.CHECKPOINT_HYPER_PARAMS_KEY] = {}
         # override the hparams with values that were passed in
-        checkpoint[cls.CHECKPOINT_HYPER_PARAMS_KEY].update(kwargs)
+        # checkpoint[cls.CHECKPOINT_HYPER_PARAMS_KEY].update(kwargs)
 
         model = cls._load_model_state(checkpoint, *args, strict=strict, **kwargs)
         return model
@@ -176,7 +176,7 @@ class ModelIO(object):
             elif args_name:
                 if args_name in cls_init_args_name:
                     cls_kwargs.update({args_name: model_args})
-            else:
+            elif model_args:
                 cls_args = (model_args,) + cls_args
 
         if not cls_spec.varkw:
