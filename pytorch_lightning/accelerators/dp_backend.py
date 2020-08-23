@@ -48,12 +48,15 @@ class DataParallelBackend(object):
         # hack forward to do autocast for the user
         self.model_autocast_original_forward = model.forward
 
-        # init half precision
-        if self.trainer.amp_backend:
-            model = self.__init_half_precision(model)
-
-        # init torch data parallel
-        model = self.__init_torch_data_parallel(model)
+        if self.trainer.amp_backend == AMPType.NATIVE:
+            # init torch data parallel
+            model = self.__init_torch_data_parallel(model)
+            self.__init_native_amp(model)
+        elif self.trainer.amp_backend == AMPType.APEX:
+            model = self.__init_nvidia_apex(model)
+            model = self.__init_torch_data_parallel(model)
+        else:
+            model = self.__init_torch_data_parallel(model)
 
         self.trainer.model = model
 
