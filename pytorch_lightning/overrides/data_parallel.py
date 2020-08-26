@@ -14,9 +14,10 @@
 
 import itertools
 import threading
-from collections.abc import Mapping, Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from itertools import chain
 
+import numpy as np
 import torch
 from torch.cuda._utils import _get_device_index
 from torch.nn import DataParallel
@@ -133,6 +134,10 @@ class LightningDataParallel(DataParallel):
                     raise ValueError('All dicts must have the same number of keys')
                 return elem_type(((k, gather_map([d[k] for d in outputs]))
                                   for k in elem))
+
+            if isinstance(elem, np.ndarray) and elem.dtype.type is np.str_:
+                # when str, elements are duplicated so return one
+                return outputs[0]
 
             if isinstance(elem, Iterable) and not isinstance(elem, str):
                 return elem_type(map(gather_map, zip(*outputs)))
