@@ -1,5 +1,6 @@
 import itertools
 import threading
+from collections import abc
 from itertools import chain
 
 import torch
@@ -67,6 +68,34 @@ class LightningDataParallel(DataParallel):
 
     def parallel_apply(self, replicas, inputs, kwargs):
         return parallel_apply(replicas, inputs, kwargs, self.device_ids[:len(replicas)])
+
+    def gather(self, outputs, output_device):
+        r"""
+        Gathers non-tensors first then resort to super class for Tensors.
+        """
+        def gather_str(outputs):
+            out = outputs[0]
+            if isinstance(out, abc.Sequence) and isinstance(out[0], str):
+                return outputs[0]
+            if isinstance(out, dict):
+                if not all((len(out) == len(d) for d in outputs)):
+                    raise ValueError('All dicts must have the same number of keys')
+                gathered = ((k, gather_str([d[k] for d in outputs])) for k in out)
+                gathered = ((k, v) for k, v in gathered if v is not None)
+                return type(out)(gathered)
+            if isinstance(out, abc.Sequence):
+                return type(out)(map(gather_str, zip(*outputs)))
+            return None
+
+        # Recursive function calls like this create reference cycles.
+        # Setting the function to None clears the refcycle.
+        try:
+            str_res = gather_str(outputs)
+            res = super().gather(outputs, output_device)
+            res.update(str_res)
+        finally:
+            gather_str = None
+        return res
 
 
 class LightningDistributedDataParallel(DistributedDataParallel):
