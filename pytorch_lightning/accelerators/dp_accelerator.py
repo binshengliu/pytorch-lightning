@@ -42,15 +42,28 @@ class DataParallelAccelerator(Accelerator):
         # allow for lr schedulers as well
         self.setup_optimizers(model)
 
-        # init torch data parallel
-        model = self.__init_torch_data_parallel(model)
+        if self.trainer.amp_backend == AMPType.APEX:
+            # hack forward to do autocast for the user
+            self.model_autocast_original_forward = model.forward
 
-        # hack forward to do autocast for the user
-        self.model_autocast_original_forward = model.forward
-
-        # init half precision
-        if self.trainer.amp_backend:
             model = self.__init_half_precision(model)
+
+            # init torch data parallel
+            model = self.__init_torch_data_parallel(model)
+        elif self.trainer.amp_backend == AMPType.NATIVE:
+            # init torch data parallel
+            model = self.__init_torch_data_parallel(model)
+
+            # hack forward to do autocast for the user
+            self.model_autocast_original_forward = model.forward
+
+            model = self.__init_half_precision(model)
+        else:
+            # init torch data parallel
+            model = self.__init_torch_data_parallel(model)
+
+            # hack forward to do autocast for the user
+            self.model_autocast_original_forward = model.forward
 
         self.trainer.model = model
 
