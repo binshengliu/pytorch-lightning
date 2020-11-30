@@ -169,7 +169,8 @@ class ModelIO(object):
 
             # 1. (backward compatibility) Try to restore model hparams from checkpoint using old/past keys
             for _old_hparam_key in CHECKPOINT_PAST_HPARAMS_KEYS:
-                cls_kwargs_loaded.update(checkpoint.get(_old_hparam_key, {}))
+                if checkpoint.get(_old_hparam_key, {}):
+                    cls_kwargs_loaded.update(checkpoint.get(_old_hparam_key, {}))
 
             # 2. Try to restore model hparams from checkpoint using the new key
             _new_hparam_key = cls.CHECKPOINT_HYPER_PARAMS_KEY
