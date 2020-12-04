@@ -207,7 +207,7 @@ class TensorBoardLogger(LightningLoggerBase):
 
     @rank_zero_only
     def save(self) -> None:
-        super().save()
+        # super().save()
         dir_path = self.log_dir
         if not self._fs.isdir(dir_path):
             dir_path = self.save_dir
